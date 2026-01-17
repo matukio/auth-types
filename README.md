@@ -83,12 +83,14 @@ npm run clean
 
 ## Publishing
 
-This package is automatically published to npm via GitHub Actions when version tags are pushed. See [PUBLISHING.md](./PUBLISHING.md) for detailed instructions.
+This package is automatically published to npm via GitHub Actions when the version in `package.json` changes on the `main` branch. See [PUBLISHING.md](./PUBLISHING.md) for detailed instructions.
 
 **Quick publish:**
 ```bash
-npm version patch  # or minor/major
-git push origin main --tags
+# Update version in package.json, then:
+git add package.json
+git commit -m "Bump version to 0.1.1"
+git push origin main
 ```
 
 ## Extensibility

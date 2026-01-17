@@ -1,6 +1,6 @@
 # Publishing Guide
 
-This package uses GitHub Actions to automatically publish to npm when version tags are pushed.
+This package uses GitHub Actions to automatically publish to npm when the version in `package.json` changes on the `main` branch.
 
 ## Prerequisites
 
@@ -30,52 +30,60 @@ You need to create an npm access token and add it to GitHub secrets:
 
 ## Publishing Process
 
-### Step 1: Make Your Changes
+### Option 1: Direct to Main (For Maintainers)
 
-Make your code changes and commit them to the `main` branch:
+1. **Update the version** in `package.json`:
+   ```bash
+   # Edit package.json and change version from "0.1.0" to "0.1.1"
+   ```
 
-```bash
-git add .
-git commit -m "Add new feature"
-git push origin main
-```
+2. **Commit and push**:
+   ```bash
+   git add package.json
+   git commit -m "Bump version to 0.1.1"
+   git push origin main
+   ```
 
-### Step 2: Bump the Version
+3. **Done!** GitHub Actions detects the version change and automatically publishes.
 
-Use npm's built-in versioning commands:
+### Option 2: Via Pull Request (Recommended for Teams)
 
-```bash
-# For bug fixes (0.1.0 → 0.1.1)
-npm version patch
+1. **Create a feature branch**:
+   ```bash
+   git checkout -b feature/my-new-feature
+   ```
 
-# For new features (0.1.0 → 0.2.0)
-npm version minor
+2. **Make your changes** and update version in `package.json`:
+   ```json
+   {
+     "version": "0.1.1",
+     ...
+   }
+   ```
 
-# For breaking changes (0.1.0 → 1.0.0)
-npm version major
-```
+3. **Commit and push**:
+   ```bash
+   git add .
+   git commit -m "Add new feature and bump version"
+   git push origin feature/my-new-feature
+   ```
 
-This will:
-- Update the version in `package.json`
-- Create a git commit with the version change
-- Create a git tag (e.g., `v0.1.1`)
+4. **Create Pull Request** on GitHub
 
-### Step 3: Push Tags
+5. **Review and merge** to `main`
 
-```bash
-git push origin main --tags
-```
+6. **Auto-publish!** Once merged, GitHub Actions detects the version change and publishes.
 
-### Step 4: GitHub Actions Takes Over
+## How It Works
 
-Once you push the tag, GitHub Actions will automatically:
-1. ✅ Checkout the code
-2. ✅ Install dependencies
-3. ✅ Run type checking
-4. ✅ Build the package
-5. ✅ Publish to npm with provenance
+The workflow:
+1. Triggers on every push to `main`
+2. Checks if `package.json` version changed in the commit
+3. If changed: runs type check, builds, and publishes to npm
+4. If not changed: skips publishing (regular commit)
+5. Creates a git tag (e.g., `v0.1.1`) after successful publish
 
-### Step 5: Monitor the Workflow
+## Monitor the Workflow
 
 1. Go to: https://github.com/matukio/auth-types/actions
 2. Click on the latest "Publish to npm" workflow
@@ -98,19 +106,23 @@ Follow [Semantic Versioning](https://semver.org/):
 ## Quick Reference
 
 ```bash
-# Complete publishing workflow
-git add .
-git commit -m "Your changes"
+# Complete publishing workflow (direct to main)
+# 1. Update version in package.json to 0.1.1
+# 2. Commit and push
+git add package.json
+git commit -m "Bump version to 0.1.1"
 git push origin main
 
-npm version patch   # or minor, or major
-git push origin main --tags
-
-# Wait for GitHub Actions to publish
+# GitHub Actions automatically publishes!
 # Check: https://github.com/matukio/auth-types/actions
 ```
 
 ## Troubleshooting
+
+### Workflow runs but doesn't publish
+- Check that the version in `package.json` actually changed
+- Compare with the previous commit to ensure the version is different
+- View workflow logs: https://github.com/matukio/auth-types/actions
 
 ### Workflow fails with "ENEEDAUTH"
 - Check that `NPM_TOKEN` secret is set in GitHub
@@ -122,8 +134,9 @@ git push origin main --tags
 - You may need to create `@matukio` organization on npm
 
 ### Wrong version published
-- Delete the tag: `git tag -d v0.1.1 && git push origin :refs/tags/v0.1.1`
-- Bump version correctly and push again
+- You cannot unpublish recent versions from npm (within 72 hours, special rules apply)
+- Instead, publish a new patch version with the fix
+- Use `npm deprecate @matukio/auth-types@0.1.1 "Accidental publish, use 0.1.2"` if needed
 
 ## First Time Publishing
 
@@ -140,8 +153,8 @@ If this is the first time publishing `@matukio/auth-types`:
 
 ## Security Notes
 
-- ✅ npm tokens are stored securely in GitHub Secrets
-- ✅ Tokens have limited permissions (only this package)
-- ✅ Provenance enabled (shows package was built on GitHub)
-- ✅ Workflow only runs on tag push (controlled access)
-- 🔄 Remember to rotate tokens every 90 days
+- npm tokens are stored securely in GitHub Secrets
+- Tokens have limited permissions (only this package)
+- Provenance enabled (shows package was built on GitHub)
+- Workflow only runs on tag push (controlled access)
+- Remember to rotate tokens every 90 days

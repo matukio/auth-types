@@ -2,8 +2,8 @@ name: Publish to npm
 
 on:
   push:
-    tags:
-      - 'v*'  # Triggers on version tags like v0.1.0, v1.0.0, etc.
+    branches:
+      - main
 
 jobs:
   publish:
@@ -16,23 +16,62 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 2  # Fetch last 2 commits to compare
+
+      - name: Check if package.json version changed
+        id: version-check
+        run: |
+          # Get the version from current commit
+          CURRENT_VERSION=$(node -p "require('./package.json').version")
+
+          # Check if this is the first commit or if package.json changed
+          if git diff HEAD^ HEAD --name-only | grep -q "package.json"; then
+            # Get the version from previous commit
+            PREVIOUS_VERSION=$(git show HEAD^:package.json | node -p "JSON.parse(require('fs').readFileSync('/dev/stdin', 'utf8')).version")
+
+            if [ "$CURRENT_VERSION" != "$PREVIOUS_VERSION" ]; then
+              echo "Version changed from $PREVIOUS_VERSION to $CURRENT_VERSION"
+              echo "changed=true" >> $GITHUB_OUTPUT
+              echo "version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+            else
+              echo "package.json changed but version stayed the same"
+              echo "changed=false" >> $GITHUB_OUTPUT
+            fi
+          else
+            echo "package.json not modified in this commit"
+            echo "changed=false" >> $GITHUB_OUTPUT
+          fi
 
       - name: Setup Node.js
+        if: steps.version-check.outputs.changed == 'true'
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           registry-url: 'https://registry.npmjs.org'
 
       - name: Install dependencies
+        if: steps.version-check.outputs.changed == 'true'
         run: npm ci
 
       - name: Run type check
+        if: steps.version-check.outputs.changed == 'true'
         run: npm run type-check
 
       - name: Build package
+        if: steps.version-check.outputs.changed == 'true'
         run: npm run build
 
       - name: Publish to npm
+        if: steps.version-check.outputs.changed == 'true'
         run: npm publish --access public --provenance
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Create git tag
+        if: steps.version-check.outputs.changed == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -a "v${{ steps.version-check.outputs.version }}" -m "Release v${{ steps.version-check.outputs.version }}"
+          git push origin "v${{ steps.version-check.outputs.version }}"
