@@ -1,0 +1,1 @@
+This package defines all core types for authentication and authorization, including roles, permissions, resources, and user interfaces. It ensures that frontend and backend stay aligned when implementing access control rules. Future domains (e.g., articles, billing) can be added as separate modules within this package
