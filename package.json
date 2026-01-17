@@ -1,15 +1,51 @@
 {
-  "name": "auth-types",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+  "name": "@matukio/auth-types",
+  "version": "0.1.0",
+  "description": "TypeScript types for authentication and authorization including roles, permissions, resources, and user interfaces",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist",
+    "prepublishOnly": "npm run clean && npm run build",
+    "type-check": "tsc --noEmit"
+  },
+  "keywords": [
+    "typescript",
+    "types",
+    "authentication",
+    "authorization",
+    "auth",
+    "rbac",
+    "roles",
+    "permissions"
+  ],
+  "author": "swe.robertkibet@gmail.com",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/matukio/auth-types.git"
+  },
+  "bugs": {
+    "url": "https://github.com/matukio/auth-types/issues"
+  },
+  "homepage": "https://github.com/matukio/auth-types#readme",
   "devDependencies": {
     "typescript": "^5.9.3"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   }
 }
