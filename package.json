@@ -1,14 +1,16 @@
 {
   "name": "@matukio/auth-types",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "TypeScript types for authentication and authorization including roles, permissions, resources, and user interfaces",
   "type": "module",
-  "main": "./dist/index.js",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
     }
   },
   "files": [
@@ -17,7 +19,7 @@
     "LICENSE"
   ],
   "scripts": {
-    "build": "tsc",
+    "build": "tsup",
     "clean": "rm -rf dist",
     "prepublishOnly": "npm run clean && npm run build",
     "type-check": "tsc --noEmit"
@@ -43,6 +45,7 @@
   },
   "homepage": "https://github.com/matukio/auth-types#readme",
   "devDependencies": {
+    "tsup": "^8.5.1",
     "typescript": "^5.9.3"
   },
   "engines": {
