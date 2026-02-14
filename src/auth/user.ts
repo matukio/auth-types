@@ -8,4 +8,5 @@ export interface User {
   id: string;       // Unique user identifier
   email: string;    // User email
   roles: Role[];    // Array of roles assigned to the user
+  isActive: boolean; // Whether the user account is active
 }

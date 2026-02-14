@@ -70,7 +70,7 @@ interface User {
   id: string;
   email: string;
   roles: Role[];
-  isActive: boolean;
+  isActive: boolean; // Whether the user account is active (default: true)
 }
 ```
 
