@@ -3,6 +3,7 @@ import { Resource } from "./resources.js";
 import { Permission } from "./permissions.js";
 import { ResourceGroups } from "./display-names.js";
 import type { ResourceGroupName } from "./display-names.js";
+import type { User } from "./user.js";
 
 /**
  * Returns the default permissions configuration for a given role.
@@ -31,96 +32,108 @@ export function getDefaultRolePermissions(
       // Full access to everything
       return {
         [Resource.ArticleDraft]: [
+          Permission.Create,
           Permission.Read,
-          Permission.Write,
+          Permission.Update,
           Permission.Delete,
         ],
         [Resource.ArticlePublished]: [
+          Permission.Create,
           Permission.Read,
-          Permission.Write,
+          Permission.Update,
           Permission.Delete,
         ],
         [Resource.ArticleArchived]: [
+          Permission.Create,
           Permission.Read,
-          Permission.Write,
+          Permission.Update,
           Permission.Delete,
         ],
         [Resource.UserView]: [Permission.Read],
         [Resource.UserManage]: [
+          Permission.Create,
           Permission.Read,
-          Permission.Write,
+          Permission.Update,
           Permission.Delete,
         ],
         [Resource.CategoryManage]: [
+          Permission.Create,
           Permission.Read,
-          Permission.Write,
+          Permission.Update,
           Permission.Delete,
         ],
         [Resource.TagManage]: [
+          Permission.Create,
           Permission.Read,
-          Permission.Write,
+          Permission.Update,
           Permission.Delete,
         ],
-        [Resource.MediaUpload]: [Permission.Write],
+        [Resource.MediaUpload]: [Permission.Create],
         [Resource.MediaManage]: [
           Permission.Read,
-          Permission.Write,
+          Permission.Update,
           Permission.Delete,
         ],
         [Resource.AnalyticsView]: [Permission.Read],
-        [Resource.SettingsManage]: [Permission.Read, Permission.Write],
+        [Resource.SettingsManage]: [Permission.Read, Permission.Update],
       };
 
     case RoleName.Editor:
       // Manage all content, but no user/system management
       return {
         [Resource.ArticleDraft]: [
+          Permission.Create,
           Permission.Read,
-          Permission.Write,
+          Permission.Update,
           Permission.Delete,
         ],
         [Resource.ArticlePublished]: [
+          Permission.Create,
           Permission.Read,
-          Permission.Write,
+          Permission.Update,
           Permission.Delete,
         ],
         [Resource.ArticleArchived]: [
+          Permission.Create,
           Permission.Read,
-          Permission.Write,
+          Permission.Update,
           Permission.Delete,
         ],
         [Resource.UserView]: [Permission.Read],
         [Resource.CategoryManage]: [
+          Permission.Create,
           Permission.Read,
-          Permission.Write,
+          Permission.Update,
           Permission.Delete,
         ],
         [Resource.TagManage]: [
+          Permission.Create,
           Permission.Read,
-          Permission.Write,
+          Permission.Update,
           Permission.Delete,
         ],
-        [Resource.MediaUpload]: [Permission.Write],
+        [Resource.MediaUpload]: [Permission.Create],
         [Resource.MediaManage]: [
           Permission.Read,
-          Permission.Write,
+          Permission.Update,
           Permission.Delete,
         ],
         [Resource.AnalyticsView]: [Permission.Read],
       };
 
     case RoleName.Author:
-      // Create and manage own articles (enforcement at application level)
+      // Create and manage own articles (ownership enforcement at application level)
       return {
         [Resource.ArticleDraft]: [
+          Permission.Create,
           Permission.Read,
-          Permission.Write,
+          Permission.Update,
           Permission.Delete,
         ],
-        [Resource.ArticlePublished]: [Permission.Read, Permission.Write],
+        [Resource.ArticlePublished]: [Permission.Read, Permission.Update],
         [Resource.CategoryManage]: [Permission.Read],
         [Resource.TagManage]: [Permission.Read],
-        [Resource.MediaUpload]: [Permission.Write],
+        [Resource.MediaUpload]: [Permission.Create],
         [Resource.MediaManage]: [Permission.Read, Permission.Delete], // Own media only
         [Resource.AnalyticsView]: [Permission.Read], // Own article analytics
       };
@@ -135,18 +148,18 @@ export function getDefaultRolePermissions(
     case RoleName.Contributor:
       // Create drafts only, cannot publish
       return {
-        [Resource.ArticleDraft]: [Permission.Read, Permission.Write],
+        [Resource.ArticleDraft]: [Permission.Create, Permission.Read],
         [Resource.CategoryManage]: [Permission.Read],
         [Resource.TagManage]: [Permission.Read],
-        [Resource.MediaUpload]: [Permission.Write],
+        [Resource.MediaUpload]: [Permission.Create],
       };
 
     case RoleName.Publisher:
       // Publish and archive articles
       return {
         [Resource.ArticleDraft]: [Permission.Read],
-        [Resource.ArticlePublished]: [Permission.Read, Permission.Write],
-        [Resource.ArticleArchived]: [Permission.Read, Permission.Write],
+        [Resource.ArticlePublished]: [Permission.Create, Permission.Read, Permission.Update],
+        [Resource.ArticleArchived]: [Permission.Create, Permission.Read, Permission.Update],
         [Resource.CategoryManage]: [Permission.Read],
         [Resource.TagManage]: [Permission.Read],
         [Resource.AnalyticsView]: [Permission.Read],
@@ -155,7 +168,7 @@ export function getDefaultRolePermissions(
     case RoleName.Reviewer:
       // Review and approve drafts
       return {
-        [Resource.ArticleDraft]: [Permission.Read, Permission.Write],
+        [Resource.ArticleDraft]: [Permission.Read, Permission.Update],
         [Resource.ArticlePublished]: [Permission.Read],
         [Resource.CategoryManage]: [Permission.Read],
         [Resource.TagManage]: [Permission.Read],
@@ -245,4 +258,37 @@ export function hasPermission(
 ): boolean {
   const permissions = resourcePermissions[resource];
   return permissions ? permissions.includes(permission) : false;
+}
+
+/**
+ * Checks if a user has the specified permission on a resource.
+ * Aggregates permissions from all user roles.
+ * Admin users automatically have all permissions.
+ *
+ * Use this in frontend for conditional UI rendering.
+ *
+ * @param user - The user to check permissions for
+ * @param resource - The resource to check
+ * @param permission - The permission to verify
+ * @returns true if the user has the permission
+ *
+ * @example
+ * ```typescript
+ * {userCan(currentUser, Resource.ArticleDraft, Permission.Update) && <EditButton />}
+ * ```
+ */
+export function userCan(
+  user: User,
+  resource: Resource,
+  permission: Permission
+): boolean {
+  // Admin bypass - admins have all permissions
+  if (user.roles.some((role) => role.name === RoleName.Admin)) {
+    return true;
+  }
+
+  // Check if any of the user's roles grants the permission
+  return user.roles.some((role) =>
+    hasPermission(role.resources, resource, permission)
+  );
 }

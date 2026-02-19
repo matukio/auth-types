@@ -1,10 +1,10 @@
 /**
  * Defines the types of permissions available for resources.
- * These are used to determine what actions a role can perform.
+ * Maps directly to CRUD operations and HTTP methods.
  */
-
 export enum Permission {
-  Read = "read",
-  Write = "write",
-  Delete = "delete",
+  Create = "create", // POST - create new resources
+  Read = "read",     // GET - view/list resources
+  Update = "update", // PUT/PATCH - modify existing resources
+  Delete = "delete", // DELETE - remove resources
 }
