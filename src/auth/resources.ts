@@ -22,7 +22,7 @@ export enum Resource {
    * User management - full CRUD access to users and role assignments.
    * Use UserView for read-only access to user lists.
    */
-  UserManage = "usr_manage",
+  UserManage = "user_manage",
 
   // Article resources by status
   /**

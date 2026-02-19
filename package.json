@@ -1,6 +1,6 @@
 {
   "name": "@matukio/auth-types",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "TypeScript types for authentication and authorization including roles, permissions, resources, and user interfaces",
   "type": "module",
   "main": "./dist/index.cjs",
